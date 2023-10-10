@@ -3,8 +3,6 @@ from nltk.tokenize import word_tokenize
 import csv
 import pandas as pd
 
-nltk.download('punkt')  # Download necessary data for NLTK tokenizer
-
 
 class PorterStemmer:
     def isCons(self, letter):#function that returns true if a letter is a consonant otherwise false
