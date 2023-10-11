@@ -6,15 +6,18 @@ import re
 
 
 class PorterStemmer:
-    def isCons(self, letter):#function that returns true if a letter is a consonant otherwise false
+
+    #function that returns true if a letter is a consonant otherwise false
+    def isCons(self, letter):
         if letter == 'a' or letter == 'e' or letter == 'i' or letter == 'o' or letter == 'u':
             return False
         else:
             return True
 
-    def isConsonant(self, word, i):#function that returns true only if the letter at i th position 
-        #in the argument 'word' is a consonant.But if the letter is 'y' and the letter at i-1 th position 
-        #is also a consonant, then it returns false.
+    #function that returns true only if the letter at i th position 
+    #in the argument 'word' is a consonant.But if the letter is 'y' and the letter at i-1 th position 
+    #is also a consonant, then it returns false.
+    def isConsonant(self, word, i):
         letter = word[i]
         if self.isCons(letter):
             if letter == 'y' and self.isCons(word[i-1]):
@@ -24,26 +27,30 @@ class PorterStemmer:
         else:
             return False
 
-    def isVowel(self, word, i):#function that returns true if the letter at i th position in the argument 'word'
-        #is a vowel
+    #function that returns true if the letter at i th position in the argument 'word'
+    #is a vowel
+    def isVowel(self, word, i):
         return not(self.isConsonant(word, i))
 
     # *S
-    def endsWith(self, stem, letter):#returns true if the word 'stem' ends with 'letter' 
+    #returns true if the word 'stem' ends with 'letter' 
+    def endsWith(self, stem, letter):
         if stem.endswith(letter):
             return True
         else:
             return False
 
     # *v*
-    def containsVowel(self, stem):#returns true if the word 'stem' contains a vowel
+    #returns true if the word 'stem' contains a vowel
+    def containsVowel(self, stem):
         for i in stem:
             if not self.isCons(i):
                 return True
         return False
 
     # *d
-    def doubleCons(self, stem):#returns true if the word 'stem' ends with 2 consonants
+    #returns true if the word 'stem' ends with 2 consonants
+    def doubleCons(self, stem):
         if len(stem) >= 2:
             if self.isConsonant(stem, -1) and self.isConsonant(stem, -2):
                 return True
@@ -52,16 +59,16 @@ class PorterStemmer:
         else:
             return False
 
+    #This function takes a word as an input, and checks for vowel and consonant sequences in that word.
+    #vowel sequence is denoted by V and consonant sequences by C
+    #For example, the word 'balloon' can be divived into following sequences:
+    #'b' : C
+    #'a' : V
+    #'ll': C
+    #'oo': V
+    #'n' : C
+    #So form = [C,V,C,V,C] and formstr = CVCVC
     def getForm(self, word):
-        #This function takes a word as an input, and checks for vowel and consonant sequences in that word.
-        #vowel sequence is denoted by V and consonant sequences by C
-        #For example, the word 'balloon' can be divived into following sequences:
-        #'b' : C
-        #'a' : V
-        #'ll': C
-        #'oo': V
-        #'n' : C
-        #So form = [C,V,C,V,C] and formstr = CVCVC
         form = []
         formStr = ''
         for i in range(len(word)):
@@ -83,18 +90,17 @@ class PorterStemmer:
             formStr += j
         return formStr
 
+    #returns value of M which is equal to number of 'VC' in formstr
+    #So in above example of word 'balloon', we have 2 'VC'
     def getM(self, word):
-        #returns value of M which is equal to number of 'VC' in formstr
-        #So in above example of word 'balloon', we have 2 'VC'
-
         form = self.getForm(word)
         m = form.count('VC')
         return m
 
     # *o
+    #returns true if the last 3 letters of the word are of the following pattern: consonant,vowel,consonant
+    #but if the last word is either 'w','x' or 'y', it returns false
     def cvc(self, word):
-        #returns true if the last 3 letters of the word are of the following pattern: consonant,vowel,consonant
-        #but if the last word is either 'w','x' or 'y', it returns false
         if len(word) >= 3:
             f = -3
             s = -2
@@ -110,21 +116,19 @@ class PorterStemmer:
         else:
             return False
 
+    #this function checks if string 'orig' ends with 'rem' and
+    #replaces 'rem' by the substring 'rep'. The resulting string 'replaced'
+    #is returned.
     def replace(self, orig, rem, rep):
-        #this function checks if string 'orig' ends with 'rem' and
-        #replaces 'rem' by the substring 'rep'. The resulting string 'replaced'
-        #is returned.
-
         result = orig.rfind(rem)
         base = orig[:result]
         replaced = base + rep
         return replaced
 
+    #same as the function replace(), except that it checks the value of M for the 
+    #base string. If it is >0 , it replaces 'rem' by 'rep', otherwise it returns the
+    #original string
     def replaceM0(self, orig, rem, rep):
-        #same as the function replace(), except that it checks the value of M for the 
-        #base string. If it is >0 , it replaces 'rem' by 'rep', otherwise it returns the
-        #original string
-
         result = orig.rfind(rem)
         base = orig[:result]
         if self.getM(base) > 0:
@@ -133,10 +137,9 @@ class PorterStemmer:
         else:
             return orig
 
+    #same as replaceM0(), except that it replaces 'rem' by 'rep', only when M>1 for
+    #the base string
     def replaceM1(self, orig, rem, rep):
-        #same as replaceM0(), except that it replaces 'rem' by 'rep', only when M>1 for
-        #the base string
-
         result = orig.rfind(rem)
         base = orig[:result]
         if self.getM(base) > 1:
@@ -154,14 +157,12 @@ class PorterStemmer:
 
         return word
 
-
+    #this function checks if a word ends with 'eed','ed' or 'ing' and replces these substrings by
+    #'ee','' and ''. If after the replacements in case of 'ed' and 'ing', the resulting word
+    # -> ends with 'at','bl' or 'iz' : add 'e' to the end of the word
+    # -> ends with 2 consonants and its last letter isn't 'l','s' or 'z': remove last letter of the word
+    # -> has 1 as value of M and the cvc(word) returns true : add 'e' to the end of the word
     def step1b(self, word):
-        #this function checks if a word ends with 'eed','ed' or 'ing' and replces these substrings by
-        #'ee','' and ''. If after the replacements in case of 'ed' and 'ing', the resulting word
-        # -> ends with 'at','bl' or 'iz' : add 'e' to the end of the word
-        # -> ends with 2 consonants and its last letter isn't 'l','s' or 'z': remove last letter of the word
-        # -> has 1 as value of M and the cvc(word) returns true : add 'e' to the end of the word
-        
         flag = False
         if word.endswith('eed'):
             result = word.rfind('eed')
@@ -194,9 +195,8 @@ class PorterStemmer:
             pass
         return word
 
-    def step1c(self, word):
-        #In words ending with 'y' this function replaces 'y' by 'i'
-        
+    #In words ending with 'y' this function replaces 'y' by 'i'
+    def step1c(self, word):        
         """step1c() turns terminal y to i when there is another vowel in the stem."""
 
         if word.endswith('y'):
@@ -243,12 +243,10 @@ class PorterStemmer:
 
         return word
 
-
+    #this function checks if the word ends with 'e'. If it does, it checks the value of
+    #M for the base word. If M>1, OR, If M = 1 and cvc(base) is false, it simply removes 'e'
+    #ending.
     def step5a(self, word):
-        #this function checks if the word ends with 'e'. If it does, it checks the value of
-        #M for the base word. If M>1, OR, If M = 1 and cvc(base) is false, it simply removes 'e'
-        #ending.
-
         if word.endswith('e'):
             base = word[:-1]
             if self.getM(base) > 1:
@@ -257,11 +255,10 @@ class PorterStemmer:
                 word = base
         return word
 
+    #this function checks if the value of M for the word is greater than 1 and it ends with 2 consonants
+    # and it ends with 'l', it removes 'l'
+    #step5b changes -ll to -l if m() > 1
     def step5b(self, word):
-        #this function checks if the value of M for the word is greater than 1 and it ends with 2 consonants
-        # and it ends with 'l', it removes 'l'
-        
-        #step5b changes -ll to -l if m() > 1
         if self.getM(word) > 1 and self.doubleCons(word) and self.endsWith(word, 'l'):
             word = word[:-1]
         return word
@@ -295,7 +292,8 @@ def tokenize(text):
 
 def stem_text(text):
     words = tokenize(text)
-    stemmed_words = [stemmer.stem(word) for word in words] #this is not using a built in function. The "stemmer" is the class and the "stem" is the last function/method
+    stemmed_words = [stemmer.stem(word) for word in words]
+    #this is not using a built in function. The "stemmer" is the class and the "stem" is the last function/method
     return ' '.join(stemmed_words)
 
 input = "4-cols_15k-rows.csv"
@@ -307,7 +305,8 @@ try:
         csv_writer = csv.writer(output_file)
 
         for row in csv_reader:
-            original_text = row[1]  # Assuming the text is in the second column
+            original_text = row[1]
+            # Assuming the text is in the second column
             stemmed_text = stem_text(original_text)
             row[1] = stemmed_text.lower()
             csv_writer.writerow(row)
