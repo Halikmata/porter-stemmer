@@ -1,12 +1,13 @@
-import nltk
 from nltk.tokenize import word_tokenize
 import csv
 import pandas as pd
+import sys
+import re
 
 
 class PorterStemmer:
     def isCons(self, letter):#function that returns true if a letter is a consonant otherwise false
-        if letter == 'a' or letter == 'e' or letter == 'i' or letter == 'o'or letter == 'u':
+        if letter == 'a' or letter == 'e' or letter == 'i' or letter == 'o' or letter == 'u':
             return False
         else:
             return True
@@ -247,9 +248,6 @@ class PorterStemmer:
         #this function checks if the word ends with 'e'. If it does, it checks the value of
         #M for the base word. If M>1, OR, If M = 1 and cvc(base) is false, it simply removes 'e'
         #ending.
-        
-        """step5() removes a final -e if m() > 1.
-        """
 
         if word.endswith('e'):
             base = word[:-1]
@@ -269,7 +267,6 @@ class PorterStemmer:
         return word
 
     def stem(self, word):
-        #steps to be followed for stemming according to the porter stemmer :)
 
         word = self.step1a(word)
         word = self.step1b(word)
@@ -281,79 +278,50 @@ class PorterStemmer:
         word = self.step5b(word)
         return word
     
+    # def replace_ere_with_er(self, stemmed_text):
+    #     word = self.stem(stemmed_text)
+    #     word = stemmed_text.split()  # Split the stemmed text into words
+    #     for i in range(len(word)):
+    #         if word[i].endswith("ere"):
+    #             word[i] = word[i][:-1]  # Remove the "e" at the end
+    #     return ' '.join(word)  # Join the modified words back into a sentence
 
-
-
-
-# # import csv
-# # from YourStemmingModule import PorterStemmer  # Import your Porter Stemmer module
-
-# # Create an instance of your Porter Stemmer
-# stemmer = PorterStemmer()
-
-# # Define the input and output file paths
-# input_file_path = 'C:\Users\JASON MAVERICK\Downloads\4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv'
-# output_file_path = 'output.csv'
-
-# # Open the input and output CSV files
-# with open(input_file_path, 'r', newline='', encoding='utf-8') as input_file, \
-#         open(output_file_path, 'w', newline='', encoding='utf-8') as output_file:
-
-#     # Create CSV reader and writer objects
-#     csv_reader = csv.reader(input_file)
-#     csv_writer = csv.writer(output_file)
-
-#     # Process and write headers if needed
-#     headers = next(csv_reader)  # Read the header row
-#     # Process and modify headers as needed
-#     # ...
-
-#     # Write the modified headers to the output file
-#     csv_writer.writerow(headers)
-
-#     # Iterate through rows in the input CSV file
-#     for row in csv_reader:
-#         # Assuming you want to apply stemming to a specific column (e.g., column 2)
-#         # Modify the desired column (e.g., column 2) with the stemming logic
-#         processed_value = stemmer.stem(row[1])  # Replace 1 with the column number to be processed
-
-#         # Replace the original value with the processed value in the row
-#         row[1] = processed_value  # Replace 1 with the column number to be processed
-
-#         # Write the modified row to the output CSV file
-#         csv_writer.writerow(row)
-
-# print("Processing complete. Output saved to", output_file_path)
-
-
-
-# Initialize the Porter Stemmer
+# Initialize the class and methods/functions
 stemmer = PorterStemmer()
 
-def tokenize_sentence(sentence):
-    # Tokenize a sentence into words
-    words = word_tokenize(sentence)
+def tokenize(text):
+    words = re.findall(r'\b\w+\b', text)
     return words
 
-def stem_sentence(sentence):
-    # Tokenize and stem a sentence using the Porter Stemmer
-    words = tokenize_sentence(sentence)
-    stemmed_words = [stemmer.stem(word) for word in words]
+def stem_text(text):
+    words = tokenize(text)
+    stemmed_words = [stemmer.stem(word) for word in words] #this is not using a built in function. The "stemmer" is the class and the "stem" is the last function/method
     return ' '.join(stemmed_words)
 
-def process_csv(input_csv_filename, output_csv_filename):
-    # Process an input CSV file, stem the words, and create an output CSV file
+input = "4-cols_15k-rows.csv"
+output = "stemmed_dataset_15k-rows_serencio-jasonmaverick.csv"
 
-    # Read the input CSV file
-    data = pd.read_csv(input_csv_filename)
+try:
+    with open(input, 'r', encoding='utf-8') as input_file, open(output, 'w', newline='', encoding='utf-8') as output_file:
+        csv_reader = csv.reader(input_file)
+        csv_writer = csv.writer(output_file)
 
-    # Create a new column with stemmed text
-    data['Stemmed_Text'] = data['Text'].apply(stem_sentence)
+        for row in csv_reader:
+            original_text = row[1]  # Assuming the text is in the second column
+            stemmed_text = stem_text(original_text)
+            row[1] = stemmed_text.lower()
+            csv_writer.writerow(row)
 
-    # Save the data to the output CSV file
-    data.to_csv(output_csv_filename, index=False)
+    print(f"Stemmed data has been written to {output}")
 
-# Example usage:
-input_csv_filename = "C:\\Users\\JASON MAVERICK\Downloads\\4-cols_15k-rows.csv - 4-cols_15k-rows.csv.csv"
-output_csv_filename = 'output_data123.csv'
-process_csv(input_csv_filename, output_csv_filename)
+except FileNotFoundError:
+    print(f"File not found: {input}")
+    sys.exit(1)
+
+except UnicodeDecodeError:
+    print(f"Unable to decode the file: {input}. Please make sure it is encoded in UTF-8.")
+    sys.exit(1)
+
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
+    sys.exit(1)
